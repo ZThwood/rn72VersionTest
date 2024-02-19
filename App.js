@@ -6,123 +6,83 @@
  * @flow strict-local
  */
 
-import React from 'react';
-import type {Node} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+import React, {useState} from 'react';
+import {Text, FlatList, SafeAreaView, View} from 'react-native';
+import {Canvas, Blur, RoundedRect} from '@shopify/react-native-skia';
+const testCardNum = 200;
+const DEFAULT_SHOW_AMOUNT = 30;
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
-import {Canvas, Image, useAnimatedImageValue} from '@shopify/react-native-skia';
+let array = [];
 
-const Section = ({children, title}): Node => {
-  const isDarkMode = useColorScheme() === 'dark';
+for (let i = 0; i < testCardNum; i++) {
+  let obj = {
+    id: i,
+    name: 'test name ' + i,
+  };
+  array.push(obj);
+}
+
+const BlurImageFilter = () => {
   return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
+    <Canvas style={{width: 158, height: 158}}>
+      <RoundedRect
+        x={0}
+        y={0}
+        width={256}
+        height={256}
+        r={25}
+        color="lightblue"
+      />
+      <Blur blur={4} />
+    </Canvas>
   );
 };
+const App = () => {
+  const [showAmount, sethSowAmount] = useState(DEFAULT_SHOW_AMOUNT);
 
-const App: () => Node = () => {
-  const isDarkMode = useColorScheme() === 'dark';
-  const bird = useAnimatedImageValue(require('./src/bird.gif'));
+  const data = array.slice(0, showAmount);
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+  const LoadMoreData = () => {
+    if (showAmount > array.length) {
+      return;
+    }
+    sethSowAmount(num => {
+      const result = (num += DEFAULT_SHOW_AMOUNT);
+      return result;
+    });
   };
 
+  const renderItem = ({item, index}) => {
+    return (
+      <View>
+        <BlurImageFilter />
+        <Text style={{fontSize: 16, color: '#FDFDFD', marginTop: 5}}>
+          {item.name}
+        </Text>
+      </View>
+    );
+  };
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <Canvas
-          style={{
-            width: 320,
-            height: 180,
-          }}>
-          <Image
-            image={bird}
-            x={0}
-            y={0}
-            width={320}
-            height={180}
-            fit="contain"
-          />
-        </Canvas>
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One1">
-            Edit <Text style={styles.highlight}>App.js</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: 'orange',
+      }}>
+      <FlatList
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          width: '100%',
+          marginTop: 20,
+          paddingBottom: 120,
+          flexDirection: 'column',
+        }}
+        numColumns={4}
+        data={data}
+        renderItem={renderItem}
+        onEndReached={LoadMoreData}
+      />
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
 
 export default App;
